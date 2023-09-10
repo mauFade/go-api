@@ -1,75 +1,77 @@
 package render
 
 import (
-	"fmt"
+	"bytes"
 	"log"
 	"net/http"
+	"path/filepath"
 	"text/template"
 )
 
 var templateCache = make(map[string]*template.Template)
 
-func RenderTemplateDepr(response http.ResponseWriter, templ string) {
-	parsedTemplate, err := template.ParseFiles("./templates/"+templ, "./templates/base.layout.html")
+func RenderTemplate(response http.ResponseWriter, templ string) {
+	templatesCache, err := createTemplateCache()
 
 	if err != nil {
-		log.Println(err)
-
-		return
+		log.Fatal(err)
 	}
 
-	err = parsedTemplate.Execute(response, nil)
+	temp, ok := templatesCache[templ]
+
+	if !ok {
+		log.Fatal(err)
+	}
+
+	buf := new(bytes.Buffer)
+
+	err = temp.Execute(buf, nil)
 
 	if err != nil {
 		log.Println(err)
+	}
 
-		return
+	_, err = buf.WriteTo(response)
+
+	if err != nil {
+		log.Println(err)
 	}
 }
 
-func RenderTemplate(response http.ResponseWriter, temp string) {
-	var template *template.Template
-	var err error
+func createTemplateCache() (map[string]*template.Template, error) {
+	cache := map[string]*template.Template{}
 
-	_, isInCache := templateCache[temp]
+	pages, err := filepath.Glob("./templates/*.page.html")
 
-	if !isInCache {
-		log.Println("Creating template and adding to cache")
-		err = createTemplateCache(temp)
+	if err != nil {
+		return cache, err
+	}
+
+	for _, page := range pages {
+		name := filepath.Base(page)
+
+		templs, err := template.New(name).ParseFiles(page)
 
 		if err != nil {
-			log.Println(err)
-
-			return
+			return cache, err
 		}
-	} else {
-		log.Println("Using cache template")
+
+		matches, err := filepath.Glob("./templates/*.layout.html")
+
+		if err != nil {
+			return cache, err
+		}
+
+		if len(matches) > 0 {
+			templs, err = templs.ParseGlob("./templates/*.layout.html")
+
+			if err != nil {
+				return cache, err
+			}
+		}
+
+		cache[name] = templs
 	}
 
-	template = templateCache[temp]
-
-	err = template.Execute(response, nil)
-
-	if err != nil {
-		log.Println(err)
-
-		return
-	}
-}
-
-func createTemplateCache(temp string) error {
-	templates := []string{
-		fmt.Sprintf("./templates/%s", temp),
-		"./templates/base.layout.html",
-	}
-
-	templ, err := template.ParseFiles(templates...)
-
-	if err != nil {
-		return err
-	}
-
-	templateCache[temp] = templ
-
-	return nil
+	return cache, nil
 }
