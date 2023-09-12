@@ -19,16 +19,23 @@ func NewTemplates(a *config.AppConfig) {
 }
 
 func RenderTemplate(response http.ResponseWriter, templ string) {
-	templatesCache, err := CreateTemplateCache()
+	var templatesCache map[string]*template.Template
+	var err error
 
-	if err != nil {
-		log.Fatal(err)
+	if app.UseCache {
+		templatesCache = app.TemplateCache
+	} else {
+		templatesCache, err = CreateTemplateCache()
+
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	temp, ok := templatesCache[templ]
 
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("Error loading cache")
 	}
 
 	buf := new(bytes.Buffer)

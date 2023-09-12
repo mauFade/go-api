@@ -3,14 +3,30 @@ package handler
 import (
 	"net/http"
 
+	"github.com/mauFade/go-api/pkg/config"
 	"github.com/mauFade/go-api/pkg/render"
 )
 
-func Home(response http.ResponseWriter, request *http.Request) {
+type Repository struct {
+	App *config.AppConfig
+}
+
+var Repo *Repository
+
+func NewRepo(a *config.AppConfig) *Repository {
+	return &Repository{
+		App: a,
+	}
+}
+
+func NewHandlers(r *Repository) {
+	Repo = r
+}
+
+func (repo *Repository) Home(response http.ResponseWriter, request *http.Request) {
 	render.RenderTemplate(response, "home.page.html")
 }
 
-// About func
-func About(response http.ResponseWriter, request *http.Request) {
+func (repo *Repository) About(response http.ResponseWriter, request *http.Request) {
 	render.RenderTemplate(response, "about.page.html")
 }
