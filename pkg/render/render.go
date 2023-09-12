@@ -2,16 +2,24 @@ package render
 
 import (
 	"bytes"
+	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
-	"text/template"
+
+	"github.com/mauFade/go-api/pkg/config"
 )
 
 var templateCache = make(map[string]*template.Template)
 
+var app *config.AppConfig
+
+func NewTemplates(a *config.AppConfig) {
+	app = a
+}
+
 func RenderTemplate(response http.ResponseWriter, templ string) {
-	templatesCache, err := createTemplateCache()
+	templatesCache, err := CreateTemplateCache()
 
 	if err != nil {
 		log.Fatal(err)
@@ -25,11 +33,7 @@ func RenderTemplate(response http.ResponseWriter, templ string) {
 
 	buf := new(bytes.Buffer)
 
-	err = temp.Execute(buf, nil)
-
-	if err != nil {
-		log.Println(err)
-	}
+	_ = temp.Execute(buf, nil)
 
 	_, err = buf.WriteTo(response)
 
@@ -38,7 +42,7 @@ func RenderTemplate(response http.ResponseWriter, templ string) {
 	}
 }
 
-func createTemplateCache() (map[string]*template.Template, error) {
+func CreateTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
 	pages, err := filepath.Glob("./templates/*.page.html")
