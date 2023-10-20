@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	model "github.com/mauFade/go-api/models"
 	"github.com/mauFade/go-api/pkg/config"
 	"github.com/mauFade/go-api/pkg/render"
 )
@@ -24,9 +25,16 @@ func NewHandlers(r *Repository) {
 }
 
 func (repo *Repository) Home(response http.ResponseWriter, request *http.Request) {
-	render.RenderTemplate(response, "home.page.html")
+	render.RenderTemplate(response, "home.page.html", &model.TemplateData{})
 }
 
 func (repo *Repository) About(response http.ResponseWriter, request *http.Request) {
-	render.RenderTemplate(response, "about.page.html")
+	stringMap := make(map[string]string)
+
+	stringMap["hello"] = "Hello World"
+	stringMap["curse"] = "EH O FLAMENGO"
+
+	render.RenderTemplate(response, "about.page.html", &model.TemplateData{
+		StringMap: stringMap,
+	})
 }

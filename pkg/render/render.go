@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	model "github.com/mauFade/go-api/models"
 	"github.com/mauFade/go-api/pkg/config"
 )
 
@@ -18,7 +19,7 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(response http.ResponseWriter, templ string) {
+func RenderTemplate(response http.ResponseWriter, templ string, templData *model.TemplateData) {
 	var templatesCache map[string]*template.Template
 	var err error
 
@@ -40,7 +41,7 @@ func RenderTemplate(response http.ResponseWriter, templ string) {
 
 	buf := new(bytes.Buffer)
 
-	_ = temp.Execute(buf, nil)
+	_ = temp.Execute(buf, templData)
 
 	_, err = buf.WriteTo(response)
 
